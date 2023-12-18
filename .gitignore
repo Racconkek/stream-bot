@@ -1,0 +1,26 @@
+# Front build
+dist
+
+# Front node_modules
+node_modules
+
+# Front yarn error logs
+.yarn/error.log
+
+# Front .env
+.env
+
+# Front yarn cache
+.yarn/
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Front Webstorm
+.idea
+.vscode
+
+# VCS
+*.orig
