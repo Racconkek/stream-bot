@@ -55,6 +55,8 @@ export class Stream {
     this.roomPage = roomPage;
 
     await roomPage.disableMicrophone();
+    // await roomPage.disableCamera();
+    await roomPage.startScreenShare();
     const url = await roomPage.startStream();
     this.url = url;
 
@@ -80,18 +82,22 @@ export class Stream {
   private async createBrowser(): Promise<Page> {
     const absoluteFilePath = path.resolve(__dirname, 'test.y4m');
     console.log(`absoluteFilePath: ${absoluteFilePath}`);
+    // `--use-file-for-fake-video-capture=${absoluteFilePath}`,
+    // '--use-fake-ui-for-media-stream',
     const browser = await browserType.launch({
       headless: false,
       args: [
         '--use-fake-device-for-media-stream',
-        '--use-fake-ui-for-media-stream',
-        `--use-file-for-fake-video-capture=${absoluteFilePath}`,
+        '--auto-select-desktop-capture-source=10 Hours Lofi Hip-Hop Marathon | Beats to Study/Relax to - YouTube',
       ],
     });
     this.browser = browser;
 
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.grantPermissions(['camera', 'microphone']);
+    const pageToShare = await context.newPage();
+    await pageToShare.goto('https://www.youtube.com/watch?v=_DYAnU3H7RI&ab_channel=EpidemicChillBeats');
+
     return await context.newPage();
   }
 
