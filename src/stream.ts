@@ -97,6 +97,7 @@ export class Stream {
     await context.grantPermissions(['camera', 'microphone']);
     const pageToShare = await context.newPage();
     await pageToShare.goto('https://www.youtube.com/watch?v=_DYAnU3H7RI&ab_channel=EpidemicChillBeats');
+    await pageToShare.keyboard.press('Space');
 
     return await context.newPage();
   }
