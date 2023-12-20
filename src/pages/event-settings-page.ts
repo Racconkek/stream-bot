@@ -20,7 +20,11 @@ export class EventSettingsPage {
   }
 
   public async gotoHostsSettings() {
-    await this.hostsSettingsBtn.click();
-    return this.hostsSettings;
+    try {
+      await this.hostsSettingsBtn.click();
+      return this.hostsSettings;
+    } catch (e) {
+      throw new Error(`Can't go to hosts tab in settings`);
+    }
   }
 }

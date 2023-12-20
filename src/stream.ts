@@ -3,6 +3,7 @@ import { RoomPage } from './pages/room-page';
 import { adminAuth } from './actions/auth';
 import { createStreamEvent } from './actions/create-stream-event';
 import { getGuid } from './actions/guid';
+import path from 'path';
 
 const browserType = chromium;
 
@@ -77,12 +78,13 @@ export class Stream {
   }
 
   private async createBrowser(): Promise<Page> {
+    const absoluteFilePath = path.resolve(__dirname, 'test.y4m');
     const browser = await browserType.launch({
       headless: false,
       args: [
         '--use-fake-device-for-media-stream',
         '--use-fake-ui-for-media-stream',
-        '--use-file-for-fake-video-capture=/Users/mir.la/Documents/stream-bot/src/test.y4m',
+        `--use-file-for-fake-video-capture=${absoluteFilePath}`,
       ],
     });
     this.browser = browser;
@@ -90,5 +92,9 @@ export class Stream {
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.grantPermissions(['camera', 'microphone']);
     return await context.newPage();
+  }
+
+  public async closeBrowser() {
+    await this.browser?.close();
   }
 }

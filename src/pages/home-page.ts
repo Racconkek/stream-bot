@@ -23,9 +23,13 @@ export class HomePage {
   }
 
   async gotoStreamEventCreation(): Promise<CreateEventPage> {
-    await this.createDropdown.clickDropdownItem(this.newEventBtn);
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.createDropdown.clickDropdownItem(this.newEventBtn);
+      await this.page.waitForLoadState('networkidle');
 
-    return new CreateEventPage(this.page);
+      return new CreateEventPage(this.page);
+    } catch (e) {
+      throw new Error(`Can't go to CreateEventPage`);
+    }
   }
 }

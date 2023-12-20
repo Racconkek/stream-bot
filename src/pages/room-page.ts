@@ -25,10 +25,14 @@ export class RoomPage {
   constructor(private readonly page: Page) {}
 
   async disableMicrophone() {
-    const isEnabled = await this.microphoneButton.getAttribute('ng-reflect-theme');
-    if (isEnabled !== 'negative') {
-      await this.microphoneButton.focus();
-      await this.microphoneButton.click();
+    try {
+      const isEnabled = await this.microphoneButton.getAttribute('ng-reflect-theme');
+      if (isEnabled !== 'negative') {
+        await this.microphoneButton.focus();
+        await this.microphoneButton.click();
+      }
+    } catch (e) {
+      console.info(`Can't disable microphone`, e);
     }
   }
 
@@ -51,12 +55,18 @@ export class RoomPage {
   }
 
   async startStream() {
-    const label = await this.streamButton.getAttribute('aria-label');
-    console.info('startStream', label);
-    if (label === 'Начать трансляцию' || label === 'Start live stream') {
-      await this.streamButton.click();
+    try {
+      const label = await this.streamButton.getAttribute('aria-label');
+      if (label === 'Начать трансляцию' || label === 'Start live stream') {
+        await this.streamButton.click();
+      } else {
+        throw new Error('Stream already started');
+      }
+
+      return this.page.url();
+    } catch (e) {
+      throw new Error(`Can't start stream: ${(e as Error).message}`);
     }
-    return this.page.url();
   }
 
   async stopStream() {

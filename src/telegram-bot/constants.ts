@@ -13,9 +13,7 @@ export const streamStartTemplate = `<code>/${Commands.StartStream}
   date: 
 </code>`;
 
-export const streamStopTemplate = `<code>/${Commands.StopStream}
-  streamId:
-</code>`;
+export const streamStopTemplate = `<code>/${Commands.StopStream} {streamId}</code>`;
 
 export const commandsDescriptions = {
   [Commands.Start]: {

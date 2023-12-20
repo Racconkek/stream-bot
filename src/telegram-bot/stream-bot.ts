@@ -4,6 +4,7 @@ import path from 'path';
 import { Commands, helpMessage, startMessage, streamStartTemplate, telegramBotCommands } from './constants';
 import { Stream } from '../stream';
 import { parseStreamParams, parseStreamParamsToString, parseStreamStopParams } from './heplers';
+import { getAuditoriumUrlFromStreamUrl } from '../helpers';
 
 config({ path: path.join(__dirname, '..', '..', '.env') });
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -100,18 +101,8 @@ export class StreamBot {
   }
 
   private async onStreamStart(msg: TelegramBot.Message) {
-    let parsedParams = undefined;
-    try {
-      parsedParams = parseStreamParams(msg.text!);
-      if (!parsedParams) {
-        await this.telegramBot.sendMessage(msg.chat.id, 'Какие-то странные параметры, не буду ничего делать');
-        return;
-      }
-    } catch (e) {
-      await this.telegramBot.sendMessage(
-        msg.chat.id,
-        'Произошла ошибка при парсинге параметров: ' + (e as Error).message
-      );
+    const parsedParams = await this.parseStartStreamParams(msg);
+    if (!parsedParams) {
       return;
     }
 
@@ -119,13 +110,15 @@ export class StreamBot {
     this.streams.set(stream.id, stream);
 
     try {
-      const url = await stream.startStream(parsedParams);
+      const roomUrl = await stream.startStream(parsedParams);
       console.info('Start stream', stream?.id, ' from User', stream?.userId, ' url: ', stream?.url);
       await this.telegramBot.sendMessage(
         msg.chat.id,
         `Параметры стрима: ${parseStreamParamsToString(
           parsedParams
-        )}\n\n <b>Стрим запущен туть:</b> <code><a>${url}</a></code>\n\n <b>Стрим id:</b> <code>${stream.id}</code>`,
+        )}\n\n <b>Стрим запущен туть:</b> <code><a>${getAuditoriumUrlFromStreamUrl(
+          roomUrl
+        )}</a></code>\n\n <b>Стрим id:</b> <code>${stream.id}</code>`,
         {
           parse_mode: 'HTML',
         }
@@ -135,6 +128,7 @@ export class StreamBot {
       if (e instanceof Error) {
         message = e.message;
       }
+      await stream.closeBrowser();
       await this.telegramBot.sendMessage(
         msg.chat.id,
         `Не удалось запустить стрим с заданными параметрами:\n\n${message}`,
@@ -166,5 +160,24 @@ export class StreamBot {
 
   private async onUnknown(msg: TelegramBot.Message) {
     await this.telegramBot.sendMessage(msg.chat.id, 'Я не знаю такую команду, попробуйте /help');
+  }
+
+  private async parseStartStreamParams(msg: TelegramBot.Message) {
+    let parsedParams = undefined;
+    try {
+      parsedParams = parseStreamParams(msg.text!);
+      if (!parsedParams) {
+        await this.telegramBot.sendMessage(msg.chat.id, 'Какие-то странные параметры, не буду ничего делать');
+        return;
+      }
+    } catch (e) {
+      await this.telegramBot.sendMessage(
+        msg.chat.id,
+        'Произошла ошибка при парсинге параметров: ' + (e as Error).message
+      );
+      return;
+    }
+
+    return parsedParams;
   }
 }

@@ -21,10 +21,14 @@ export class RoomConnectPage {
   }
 
   async continue(): Promise<RoomPage> {
-    await this.continueButton.click();
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.continueButton.click();
+      await this.page.waitForLoadState('networkidle');
 
-    return new RoomPage(this.page);
+      return new RoomPage(this.page);
+    } catch (e) {
+      throw new Error(`Can't click on continue button while connect to room`);
+    }
   }
 
   async disableMicrophone() {

@@ -41,20 +41,12 @@ export const parseStreamParamsToString = (params: StreamStartParams): string => 
 };
 
 export const parseStreamStopParams = (text: string): string => {
-  const lines = text
+  const parts = text
     .trim()
-    .split('\n')
-    .map((line) => line.trim());
-  let id = undefined;
+    .split(' ')
+    .map((part) => part.trim());
 
-  for (const line of lines) {
-    const separatorIndex = line.indexOf(':');
-    const key = line.substring(0, separatorIndex).trim();
-    const value = line.substring(separatorIndex + 1).trim();
-    if (key === 'streamId') {
-      id = value;
-    }
-  }
+  const id = parts[1];
 
   if (!id) {
     throw new Error('Нет streamId');

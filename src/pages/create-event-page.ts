@@ -1,7 +1,7 @@
 import { Page } from 'playwright';
 import { DatePicker } from '../elements/date-picker';
-import {TimeInput} from "../elements/time-input";
-import {EventSettingsPage} from "./event-settings-page";
+import { TimeInput } from '../elements/time-input';
+import { EventSettingsPage } from './event-settings-page';
 
 export class CreateEventPage {
   private readonly dateTimePicker = this.page.getByTestId('CreateEventPage.DateTimePicker');
@@ -26,32 +26,52 @@ export class CreateEventPage {
    * @param date "01.07.2023"
    * */
   async setDate(date: string) {
-    await this.datePicker.fill(date);
-    await this.datePicker.blur();
+    try {
+      await this.datePicker.fill(date);
+      await this.datePicker.blur();
+    } catch (e) {
+      throw new Error(`Can't set date: ${date}`);
+    }
   }
 
   /**
    * @param time "12"
    * */
   async setFromTime(time: string) {
-    await this.timeFromPicker.fill(time);
-    await this.timeFromPicker.blur();
+    try {
+      await this.timeFromPicker.fill(time);
+      await this.timeFromPicker.blur();
+    } catch (e) {
+      throw new Error(`Can't set from time: ${time}`);
+    }
   }
 
   /**
    * @param time "12"
    * */
   async setToTime(time: string) {
-    await this.timeToPicker.fill(time);
-    await this.datePicker.blur();
+    try {
+      await this.timeToPicker.fill(time);
+      await this.datePicker.blur();
+    } catch (e) {
+      throw new Error(`Can't set to time: ${time}`);
+    }
   }
 
   async setName(name: string) {
-    await this.nameInput.fill(name);
+    try {
+      await this.nameInput.fill(name);
+    } catch (e) {
+      throw new Error(`Can't set to name: ${name}`);
+    }
   }
 
   async createEvent() {
-    await this.createBtn.click();
+    try {
+      await this.createBtn.click();
+    } catch (e) {
+      throw new Error(`Can't click on create button`);
+    }
   }
 
   async cancelCreation() {
@@ -59,7 +79,11 @@ export class CreateEventPage {
   }
 
   async gotoEventSettings(): Promise<EventSettingsPage> {
-    await this.eventSettingsBtn.click();
-    return new EventSettingsPage(this.page);
+    try {
+      await this.eventSettingsBtn.click();
+      return new EventSettingsPage(this.page);
+    } catch (e) {
+      throw new Error(`Can't go to stream event settings page after create`);
+    }
   }
 }

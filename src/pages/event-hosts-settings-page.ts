@@ -1,7 +1,5 @@
 import { Page } from 'playwright';
-import {RoomAskPermissionsPage} from "./room-ask-permissions-page";
-import {RoomConnectPage} from "./room-connect-page";
-
+import { RoomConnectPage } from './room-connect-page';
 
 export class EventHostsSettingsPage {
   readonly anonymousSpeakers = this.page.getByTestId('HostsSettings.AnonymousSpeakers').locator('n-web-toggle');
@@ -10,8 +8,11 @@ export class EventHostsSettingsPage {
   constructor(private readonly page: Page) {}
 
   public async openRoomLink(): Promise<RoomConnectPage> {
-    await this.roomLink.click();
-
-    return new RoomConnectPage(this.page);
+    try {
+      await this.roomLink.click();
+      return new RoomConnectPage(this.page);
+    } catch (e) {
+      throw new Error(`Can't go to room by click on link in stream event settings`);
+    }
   }
 }
