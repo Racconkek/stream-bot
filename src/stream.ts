@@ -79,6 +79,7 @@ export class Stream {
 
   private async createBrowser(): Promise<Page> {
     const absoluteFilePath = path.resolve(__dirname, 'test.y4m');
+    console.log(`absoluteFilePath: ${absoluteFilePath}`);
     const browser = await browserType.launch({
       headless: false,
       args: [
