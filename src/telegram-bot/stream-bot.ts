@@ -118,17 +118,31 @@ export class StreamBot {
     const stream = new Stream(msg.from!.id.toString());
     this.streams.set(stream.id, stream);
 
-    const url = await stream.startStream(parsedParams);
-    console.info('Start stream', stream?.id, ' from User', stream?.userId, ' url: ', stream?.url);
-    await this.telegramBot.sendMessage(
-      msg.chat.id,
-      `Параметры стрима: ${parseStreamParamsToString(
-        parsedParams
-      )}\n\n <b>Стрим запущен туть:</b> <code><a>${url}</a></code>\n\n <b>Стрим id:</b> <code>${stream.id}</code>`,
-      {
-        parse_mode: 'HTML',
+    try {
+      const url = await stream.startStream(parsedParams);
+      console.info('Start stream', stream?.id, ' from User', stream?.userId, ' url: ', stream?.url);
+      await this.telegramBot.sendMessage(
+        msg.chat.id,
+        `Параметры стрима: ${parseStreamParamsToString(
+          parsedParams
+        )}\n\n <b>Стрим запущен туть:</b> <code><a>${url}</a></code>\n\n <b>Стрим id:</b> <code>${stream.id}</code>`,
+        {
+          parse_mode: 'HTML',
+        }
+      );
+    } catch (e) {
+      let message = 'Неизвестная ошибка';
+      if (e instanceof Error) {
+        message = e.message;
       }
-    );
+      await this.telegramBot.sendMessage(
+        msg.chat.id,
+        `Не удалось запустить стрим с заданными параметрами:\n\n${message}`,
+        {
+          parse_mode: 'HTML',
+        }
+      );
+    }
   }
 
   private async onStreamStop(msg: TelegramBot.Message) {
