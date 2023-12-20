@@ -4,17 +4,15 @@ dist
 # Front node_modules
 node_modules
 
-# Front yarn error logs
-.yarn/error.log
-
 # Front .env
 .env
 
 # Front yarn cache
-.yarn/
+.yarn/cache
+.yarn/install-state.gz
 !.yarn/patches
 !.yarn/plugins
-!.yarn/releases
+!.yarn/releases/yarn-3.5.0.cjs
 !.yarn/sdks
 !.yarn/versions
 
