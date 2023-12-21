@@ -1,20 +1,13 @@
-import { StreamStartParams } from '../stream';
-import { dateToString } from '../helpers';
+import { defaultStreamStartParams, IStreamStartParams } from '../stream/types';
 
-export const defaultStreamStartParams: StreamStartParams = {
-  streamStandUrl: 'https://talk-master.kube.testkontur.ru/',
-  name: 'Test stream from Telegram Stream bot',
-  date: dateToString(new Date()),
-  startTime: undefined,
-  endTime: undefined,
-};
-
-export const parseStreamParams = (text: string): StreamStartParams => {
+export const parseStreamParams = (text: string): IStreamStartParams => {
   const lines = text
     .trim()
     .split('\n')
     .map((line) => line.trim());
-  const params: StreamStartParams = defaultStreamStartParams;
+  const params: IStreamStartParams = defaultStreamStartParams;
+  let hasTabToShareUrl = false;
+  let hasTabToShareName = false;
 
   for (const line of lines) {
     const separatorIndex = line.indexOf(':');
@@ -30,13 +23,30 @@ export const parseStreamParams = (text: string): StreamStartParams => {
       params.startTime = value;
     } else if (key === 'endTime') {
       params.endTime = value;
+    } else if (key === 'tabToShareUrl') {
+      hasTabToShareUrl = true;
+    } else if (key === 'tabToShareName') {
+      hasTabToShareName = true;
     }
   }
+
+  if (hasTabToShareUrl && hasTabToShareName) {
+    params.tabToShareUrl = lines
+      .find((line) => line.trim().startsWith('tabToShareUrl'))
+      ?.split('tabToShareUrl:')[1]
+      .trim();
+    params.tabToShareName = lines
+      .find((line) => line.trim().startsWith('tabToShareName'))
+      ?.split('tabToShareName:')[1]
+      .trim();
+  }
+
+  console.log(params)
 
   return params;
 };
 
-export const parseStreamParamsToString = (params: StreamStartParams): string => {
+export const parseStreamParamsToString = (params: IStreamStartParams): string => {
   return `streamStandUrl: ${params.streamStandUrl}\nname: ${params.name}\ndate: ${params.date}\nstartTime: ${params.startTime}\nendTime: ${params.endTime}`;
 };
 

@@ -1,10 +1,17 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { config } from 'dotenv';
 import path from 'path';
-import { Commands, helpMessage, startMessage, streamStartTemplate, telegramBotCommands } from './constants';
-import { Stream } from '../stream';
-import { parseStreamParams, parseStreamParamsToString, parseStreamStopParams } from './heplers';
-import { getAuditoriumUrlFromStreamUrl } from '../helpers';
+import {
+  Commands,
+  getAfterStartStreamMessage,
+  getUserActiveStreamsMessage,
+  helpMessage,
+  startMessage,
+  streamStartTemplate,
+  telegramBotCommands,
+} from './constants';
+import { Stream } from '../stream/stream';
+import { parseStreamParams, parseStreamStopParams } from './heplers';
 
 config({ path: path.join(__dirname, '..', '..', '.env') });
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -12,6 +19,7 @@ const botToken = process.env.TELEGRAM_BOT_TOKEN;
 export class StreamBot {
   private telegramBot: TelegramBot;
   private streams: Map<string, Stream>;
+  private startTime?: number;
 
   constructor() {
     if (!botToken) {
@@ -31,6 +39,7 @@ export class StreamBot {
   }
 
   public async start() {
+    this.startTime = parseInt(Date.now().toString().substring(0, 10));
     await this.telegramBot.setMyCommands(telegramBotCommands);
     await this.telegramBot.startPolling();
     console.info(`TelegramBot startPolling`);
@@ -39,6 +48,11 @@ export class StreamBot {
   private async onMessage(msg: TelegramBot.Message) {
     if (!msg.text || !msg.from || !msg.from?.id || msg.from.is_bot) {
       await this.telegramBot.sendMessage(msg.chat.id, 'Вы какой-то странный, не буду ничего делать');
+      return;
+    }
+
+    if (this.startTime && msg.date < this.startTime) {
+      console.log(`Old message, skip: ${msg.from?.username} - ${msg.text}, ${msg.date} < ${this.startTime}`);
       return;
     }
 
@@ -71,11 +85,17 @@ export class StreamBot {
   }
 
   private async onStart(msg: TelegramBot.Message) {
-    await this.telegramBot.sendMessage(msg.chat.id, startMessage, { parse_mode: 'HTML' });
+    await this.telegramBot.sendMessage(msg.chat.id, startMessage, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    });
   }
 
   private async onHelp(msg: TelegramBot.Message) {
-    await this.telegramBot.sendMessage(msg.chat.id, helpMessage, { parse_mode: 'HTML' });
+    await this.telegramBot.sendMessage(msg.chat.id, helpMessage, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    });
   }
   private async onTemplate(msg: TelegramBot.Message) {
     await this.telegramBot.sendMessage(msg.chat.id, streamStartTemplate, { parse_mode: 'HTML' });
@@ -89,40 +109,35 @@ export class StreamBot {
       await this.telegramBot.sendMessage(msg.chat.id, 'У вас нет запущенных стримов');
       return;
     }
-    await this.telegramBot.sendMessage(
-      msg.chat.id,
-      `Ваши запущенные стримы:\n\n${userActiveStreams
-        .map((stream) => `<b>id</b>: <code>${stream.id}</code>\n<b>url</b>: <code>${stream.url}</code>\n`)
-        .join('\n\n')}`,
-      {
-        parse_mode: 'HTML',
-      }
-    );
+    await this.telegramBot.sendMessage(msg.chat.id, getUserActiveStreamsMessage(userActiveStreams), {
+      parse_mode: 'HTML',
+    });
   }
 
   private async onStreamStart(msg: TelegramBot.Message) {
+    await this.telegramBot.sendMessage(msg.chat.id, 'Запускаю стрим, подождите немного...');
+
     const parsedParams = await this.parseStartStreamParams(msg);
     if (!parsedParams) {
       return;
     }
 
-    const stream = new Stream(msg.from!.id.toString());
+    const stream = new Stream(msg.from!.id.toString(), msg.from!.username ?? 'unknown_user');
     this.streams.set(stream.id, stream);
 
     try {
       const roomUrl = await stream.startStream(parsedParams);
-      console.info('Start stream', stream?.id, ' from User', stream?.userId, ' url: ', stream?.url);
-      await this.telegramBot.sendMessage(
-        msg.chat.id,
-        `Параметры стрима: ${parseStreamParamsToString(
-          parsedParams
-        )}\n\n <b>Стрим запущен туть:</b> <code><a>${getAuditoriumUrlFromStreamUrl(
-          roomUrl
-        )}</a></code>\n\n <b>Стрим id:</b> <code>${stream.id}</code>`,
-        {
-          parse_mode: 'HTML',
-        }
-      );
+      console.info('Start stream', stream?.id, ' from User', stream?.userName, ' url: ', stream?.url);
+      await this.telegramBot.sendMessage(msg.chat.id, getAfterStartStreamMessage(parsedParams, roomUrl, stream.id), {
+        parse_mode: 'HTML',
+      });
+
+      //NOTE: Останавливаем стрим автоматически через N минут
+      // NOTE: 8h = 28800000ms
+      // NOTE: 10min = 600000ms
+      setTimeout(async () => {
+        await this.stopStreamInner(stream.id, msg.chat.id);
+      }, 28800000);
     } catch (e) {
       let message = 'Неизвестная ошибка';
       if (e instanceof Error) {
@@ -150,12 +165,16 @@ export class StreamBot {
       );
       return;
     }
+    await this.stopStreamInner(streamId, msg.chat.id);
+  }
+
+  private async stopStreamInner(streamId: string, chatId: number) {
     const savedStream = this.streams.get(streamId);
     if (savedStream) {
       await savedStream.stopStream();
       console.info('Stop stream', savedStream?.id, ' from User', savedStream?.userId, ' url: ', savedStream?.url);
     }
-    await this.telegramBot.sendMessage(msg.chat.id, `Стрим ${streamId} остановлен`);
+    await this.telegramBot.sendMessage(chatId, `Стрим ${streamId} остановлен`);
   }
 
   private async onUnknown(msg: TelegramBot.Message) {

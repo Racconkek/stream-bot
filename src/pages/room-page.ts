@@ -43,13 +43,20 @@ export class RoomPage {
     }
   }
 
-  async startScreenShare() {
-    const isEnabled = await this.screenShareButton.getAttribute('ng-reflect-theme');
-    if (isEnabled !== 'negative') {
+  async startScreenShare(): Promise<boolean> {
+    const label = await this.screenShareButton.locator('button').getAttribute('aria-label');
+    if (label === 'Показать экран' || label === 'Start screen sharing') {
       await this.screenShareButton.click();
     }
-  }
 
+    const isSharing = await this.page
+      .locator('conference-toolbar-button[id="share-screen-btn"]')
+      .locator('n-action-button')
+      .locator('button')
+      .getAttribute('aria-label');
+    // @ts-ignore
+    return !isSharing || isSharing !== 'Stop screen sharing' || isSharing !== 'Отключить показ экрана';
+  }
   async leaveRoom() {
     await this.leaveButton.click();
   }
