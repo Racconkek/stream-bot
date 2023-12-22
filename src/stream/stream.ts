@@ -7,15 +7,31 @@ import { DefaultTabToShareParams, ITabToShareParams, IStreamStartParams } from '
 
 const browserType = chromium;
 
+/**
+ * Класс стрима
+ * @property id Уникальный идентификатор
+ * @property userId Уникальный идентификатор пользователя, который запустил стрим
+ * @property userName Телеграм-логин пользователя, который запустил стрим
+ * @property status Статус стрима
+ * @property roomUrl Ссылка на комнату, где запущен стрим
+ * @property browser Инстанс браузера, в котором запущен стрим
+ * @property roomPage Инстанс страницы комнаты, где запущен стрим
+ */
 export class Stream {
   public id: string;
   public userId: string;
   public userName: string;
   public status: 'created' | 'started' | 'stopped';
-  public url?: string;
+  public roomUrl?: string;
   private browser?: Browser;
   private roomPage?: RoomPage;
 
+  /**
+   * Конструктор стрима
+   *
+   * @param userId Уникальный идентификатор пользователя, который запустил стрим
+   * @param userName Телеграм-логин пользователя, который запустил стрим
+   */
   constructor(userId: string, userName: string) {
     this.id = getGuid();
     this.status = 'created';
@@ -23,6 +39,10 @@ export class Stream {
     this.userName = userName;
   }
 
+  /**
+   * Вход в рандомную комнату
+   * @param streamStandUrl Ссылка на стенд, на котором должна открыться рандомная комната
+   */
   public async enterRandomRoom(streamStandUrl: string) {
     const page = await this.createBrowser();
     const homePage = await adminAuth(page, streamStandUrl);
@@ -32,11 +52,13 @@ export class Stream {
     // await roomPage.startScreenShare();
   }
 
+  /**
+   * Запуск стрима
+   * @param streamStartParams Параметры запуска стрима
+   * @returns Ссылка на комнату, где запущен стрим
+   */
   public async startStream(streamStartParams: IStreamStartParams) {
-    const page = await this.createBrowser({
-      url: streamStartParams.tabToShareUrl,
-      name: streamStartParams.tabToShareName,
-    });
+    const page = await this.createBrowser(streamStartParams.tabParams);
     const homePage = await adminAuth(page, streamStartParams.streamStandUrl);
     const createEventPage = await homePage.gotoStreamEventCreation();
     const eventSettingsPage = await createStreamEvent(
@@ -59,13 +81,16 @@ export class Stream {
     }
 
     const url = await roomPage.startStream();
-    this.url = url;
+    this.roomUrl = url;
 
     this.status = 'started';
 
     return url;
   }
 
+  /**
+   * Остановка стрима
+   */
   public async stopStream() {
     if (this.status !== 'started') {
       return;
@@ -75,11 +100,19 @@ export class Stream {
     this.status = 'stopped';
   }
 
+  /**
+   * Выход из рандомной комнаты
+   */
   public async leaveRoom() {
     this.roomPage?.leaveRoom();
     this.status = 'stopped';
   }
 
+  /**
+   * Запуск браузера
+   * @param tabToShareParams Параметры для вкладки, которую шарим
+   * @returns Новая страница, рядом с вкладкой которую будем шарить
+   */
   private async createBrowser(tabToShareParams?: ITabToShareParams): Promise<Page> {
     // NOTE: таким образом можно подложить фейковый видос вместо видео с вебки, но на линухе не работает)))
     // const absoluteFilePath = path.resolve(__dirname, 'test.y4m');
@@ -104,6 +137,11 @@ export class Stream {
     return await context.newPage();
   }
 
+  /**
+   * Подготовка вкладки для шаринга
+   * @param context Контекст запущенного браузера
+   * @param tabToShareParams Параметры для вкладки, которую шарим
+   */
   private async prepareTabToShare(context: BrowserContext, tabToShareParams?: ITabToShareParams) {
     try {
       const pageToShare = await context.newPage();
@@ -115,6 +153,9 @@ export class Stream {
     }
   }
 
+  /**
+   * Закрытие браузера
+   */
   public async closeBrowser() {
     await this.browser?.close();
   }

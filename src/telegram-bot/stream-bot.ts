@@ -16,6 +16,9 @@ import { parseStreamParams, parseStreamStopParams } from './heplers';
 config({ path: path.join(__dirname, '..', '..', '.env') });
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
+/**
+ * Класс бота, хранит в себе все запущенные стримы, инстанс TelegramBot и дату запуска бота
+ */
 export class StreamBot {
   private telegramBot: TelegramBot;
   private streams: Map<string, Stream>;
@@ -127,7 +130,7 @@ export class StreamBot {
 
     try {
       const roomUrl = await stream.startStream(parsedParams);
-      console.info('Start stream', stream?.id, ' from User', stream?.userName, ' url: ', stream?.url);
+      console.info('Start stream', stream?.id, ' from User', stream?.userName, ' url: ', stream?.roomUrl);
       await this.telegramBot.sendMessage(msg.chat.id, getAfterStartStreamMessage(parsedParams, roomUrl, stream.id), {
         parse_mode: 'HTML',
       });
@@ -172,7 +175,7 @@ export class StreamBot {
     const savedStream = this.streams.get(streamId);
     if (savedStream) {
       await savedStream.stopStream();
-      console.info('Stop stream', savedStream?.id, ' from User', savedStream?.userId, ' url: ', savedStream?.url);
+      console.info('Stop stream', savedStream?.id, ' from User', savedStream?.userId, ' url: ', savedStream?.roomUrl);
     }
     await this.telegramBot.sendMessage(chatId, `Стрим ${streamId} остановлен`);
   }

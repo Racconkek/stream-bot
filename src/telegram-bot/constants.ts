@@ -87,5 +87,5 @@ export const getAfterStartStreamMessage = (parsedParams: IStreamStartParams, roo
 
 export const getUserActiveStreamsMessage = (userActiveStreams: Stream[]) =>
   `Ваши запущенные стримы:\n\n${userActiveStreams
-    .map((stream) => `<b>id</b>: <code>${stream.id}</code>\n<b>url</b>: <code>${stream.url}</code>\n`)
+    .map((stream) => `<b>id</b>: <code>${stream.id}</code>\n<b>url</b>: <code>${stream.roomUrl}</code>\n`)
     .join('\n\n')}`;

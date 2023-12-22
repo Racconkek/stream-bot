@@ -1,6 +1,5 @@
-import { StreamBot } from './telegram-bot';
 import express from 'express';
-
+import { StreamBot } from './telegram-bot/stream-bot';
 
 const streamBot = new StreamBot();
 const app = express();

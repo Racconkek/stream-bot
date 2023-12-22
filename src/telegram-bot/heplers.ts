@@ -1,11 +1,11 @@
-import { defaultStreamStartParams, IStreamStartParams } from '../stream/types';
+import { DefaultStreamStartParams, IStreamStartParams, ITabToShareParams } from '../stream/types';
 
 export const parseStreamParams = (text: string): IStreamStartParams => {
   const lines = text
     .trim()
     .split('\n')
     .map((line) => line.trim());
-  const params: IStreamStartParams = defaultStreamStartParams;
+  const params: IStreamStartParams = DefaultStreamStartParams;
   let hasTabToShareUrl = false;
   let hasTabToShareName = false;
 
@@ -31,17 +31,16 @@ export const parseStreamParams = (text: string): IStreamStartParams => {
   }
 
   if (hasTabToShareUrl && hasTabToShareName) {
-    params.tabToShareUrl = lines
+    params.tabParams = {} as ITabToShareParams;
+    params.tabParams.url = lines
       .find((line) => line.trim().startsWith('tabToShareUrl'))
       ?.split('tabToShareUrl:')[1]
       .trim();
-    params.tabToShareName = lines
+    params.tabParams.name = lines
       .find((line) => line.trim().startsWith('tabToShareName'))
       ?.split('tabToShareName:')[1]
       .trim();
   }
-
-  console.log(params)
 
   return params;
 };
