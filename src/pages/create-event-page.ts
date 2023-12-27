@@ -1,13 +1,13 @@
 import { Page } from 'playwright';
 import { DatePicker } from '../elements/date-picker';
-import { TimeInput } from '../elements/time-input';
 import { EventSettingsPage } from './event-settings-page';
+import {Select} from "../elements/select";
 
 export class CreateEventPage {
   private readonly dateTimePicker = this.page.getByTestId('CreateEventPage.DateTimePicker');
   readonly datePicker = new DatePicker(this.dateTimePicker.getByTestId('OneDateTimePicker.DatePicker'));
-  readonly timeFromPicker = new TimeInput(this.dateTimePicker.getByTestId('OneDateTimePicker.TimeFromPicker'));
-  readonly timeToPicker = this.dateTimePicker.getByTestId('OneDateTimePicker.TimeToPicker').locator('input').nth(0);
+  readonly durationHoursSelect = new Select(this.dateTimePicker.getByTestId('OneDateTimePicker.DurationHours'));
+  readonly durationMinutesSelect = new Select(this.dateTimePicker.getByTestId('OneDateTimePicker.DurationMinutes'));
   readonly nameInput = this.page.getByTestId('CreateEventPage.NameInput').locator('textarea');
   readonly createBtn = this.page.getByTestId('CreateEventPage.CreateButton');
   readonly cancelBtn = this.page.getByTestId('CreateEventPage.CancelButton');
@@ -29,27 +29,22 @@ export class CreateEventPage {
   }
 
   /**
-   * @param time "12"
+   * @param hours "1ч"
    * */
-  public async setFromTime(time: string) {
-    try {
-      await this.timeFromPicker.fill(time);
-      await this.timeFromPicker.blur();
-    } catch (e) {
-      throw new Error(`Can't set from time: ${time}`);
-    }
+  async setDurationHours(hours: string) {
+    await this.durationHoursSelect.selectItem(
+      this.page
+        .locator('[data-tid="Select__menu"]')
+        .getByText(hours)
+        .filter({ hasText: new RegExp(`^${hours}$`) }),
+    );
   }
 
   /**
-   * @param time "12"
+   * @param minutes "0м | 15м | 30м | 45м"
    * */
-  public async setToTime(time: string) {
-    try {
-      await this.timeToPicker.fill(time);
-      await this.datePicker.blur();
-    } catch (e) {
-      throw new Error(`Can't set to time: ${time}`);
-    }
+  async setDurationMinutes(minutes: string) {
+    await this.durationMinutesSelect.selectItem(this.page.getByText(minutes));
   }
 
   public async setName(name: string) {
@@ -84,15 +79,15 @@ export class CreateEventPage {
   public async createStreamEvent(
     name: string,
     date: string,
-    startTime?: string,
-    endTime?: string
+    durationHours?: string,
+    durationMinutes?: string
   ) {
     await this.setDate(date);
-    if (startTime) {
-      await this.setFromTime(startTime);
+    if (durationHours) {
+      await this.setDurationHours(durationHours);
     }
-    if (endTime) {
-      await this.setToTime(endTime);
+    if (durationMinutes) {
+      await this.setDurationMinutes(durationMinutes);
     }
     await this.setName(name);
 

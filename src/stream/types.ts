@@ -40,8 +40,8 @@ export interface IStreamStartParams {
   streamStandUrl: string;
   name: string;
   date: string;
-  startTime?: string;
-  endTime?: string;
+  durationHours?: string;
+  durationMinutes?: string;
   tabParams?: ITabToShareParams;
 }
 
@@ -49,7 +49,7 @@ export const DefaultStreamStartParams: IStreamStartParams = {
   streamStandUrl: 'https://talk-master.kube.testkontur.ru/',
   name: 'Test stream from Telegram Stream bot',
   date: dateToString(new Date()),
-  startTime: undefined,
-  endTime: undefined,
+  durationHours: undefined,
+  durationMinutes: undefined,
   tabParams: DefaultTabToShareParams,
 };

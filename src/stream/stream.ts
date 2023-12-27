@@ -63,8 +63,8 @@ export class Stream {
     const eventSettingsPage = await createEventPage.createStreamEvent(
       streamStartParams.name,
       streamStartParams.date,
-      streamStartParams.startTime,
-      streamStartParams.endTime
+      streamStartParams.durationHours,
+      streamStartParams.durationMinutes
     );
     const hostsSettingsPage = await eventSettingsPage.gotoHostsSettings();
     const roomConnectPage = await hostsSettingsPage.openRoomLink();

@@ -1,4 +1,5 @@
 import { DefaultStreamStartParams, IStreamStartParams, ITabToShareParams } from '../stream/types';
+import { dateToString } from '../helpers';
 
 export const parseStreamParams = (text: string): IStreamStartParams => {
   const lines = text
@@ -6,6 +7,7 @@ export const parseStreamParams = (text: string): IStreamStartParams => {
     .split('\n')
     .map((line) => line.trim());
   const params: IStreamStartParams = DefaultStreamStartParams;
+  params.date = dateToString(new Date());
   let hasTabToShareUrl = false;
   let hasTabToShareName = false;
 
@@ -19,10 +21,10 @@ export const parseStreamParams = (text: string): IStreamStartParams => {
       params.name = value;
     } else if (key === 'date') {
       params.date = value;
-    } else if (key === 'startTime') {
-      params.startTime = value;
-    } else if (key === 'endTime') {
-      params.endTime = value;
+    } else if (key === 'durationHours') {
+      params.durationHours = value;
+    } else if (key === 'durationMinutes') {
+      params.durationMinutes = value;
     } else if (key === 'tabToShareUrl') {
       hasTabToShareUrl = true;
     } else if (key === 'tabToShareName') {
@@ -46,7 +48,7 @@ export const parseStreamParams = (text: string): IStreamStartParams => {
 };
 
 export const parseStreamParamsToString = (params: IStreamStartParams): string => {
-  return `streamStandUrl: ${params.streamStandUrl}\nname: ${params.name}\ndate: ${params.date}\nstartTime: ${params.startTime}\nendTime: ${params.endTime}`;
+  return `streamStandUrl: ${params.streamStandUrl}\nname: ${params.name}\ndate: ${params.date}\ndurationHours: ${params.durationHours}\ndurationMinutes: ${params.durationMinutes}`;
 };
 
 export const parseStreamStopParams = (text: string): string => {
