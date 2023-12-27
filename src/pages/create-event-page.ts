@@ -12,20 +12,14 @@ export class CreateEventPage {
   readonly createBtn = this.page.getByTestId('CreateEventPage.CreateButton');
   readonly cancelBtn = this.page.getByTestId('CreateEventPage.CancelButton');
 
-  readonly eventsList = this.page.getByTestId('CreateEventPage.EventsList');
-  readonly eventsListItems = this.page.getByTestId('StreamEventsDayBlock.Event');
-  readonly eventsNames = this.page.getByTestId('StreamEventBlock.Name');
-
   readonly eventSettingsBtn = this.page.getByTestId('StreamEventCreated.SettingsButton');
-  readonly toMainPageBtn = this.page.getByTestId('StreamEventCreated.ToMainPageButton');
-  readonly createdEventText = this.page.getByTestId('StreamEventCreated.EventDateText');
 
   constructor(private readonly page: Page) {}
 
   /**
    * @param date "01.07.2023"
    * */
-  async setDate(date: string) {
+  public async setDate(date: string) {
     try {
       await this.datePicker.fill(date);
       await this.datePicker.blur();
@@ -37,7 +31,7 @@ export class CreateEventPage {
   /**
    * @param time "12"
    * */
-  async setFromTime(time: string) {
+  public async setFromTime(time: string) {
     try {
       await this.timeFromPicker.fill(time);
       await this.timeFromPicker.blur();
@@ -49,7 +43,7 @@ export class CreateEventPage {
   /**
    * @param time "12"
    * */
-  async setToTime(time: string) {
+  public async setToTime(time: string) {
     try {
       await this.timeToPicker.fill(time);
       await this.datePicker.blur();
@@ -58,7 +52,7 @@ export class CreateEventPage {
     }
   }
 
-  async setName(name: string) {
+  public async setName(name: string) {
     try {
       await this.nameInput.fill(name);
     } catch (e) {
@@ -66,7 +60,7 @@ export class CreateEventPage {
     }
   }
 
-  async createEvent() {
+  public async createEvent() {
     try {
       await this.createBtn.click();
     } catch (e) {
@@ -74,16 +68,35 @@ export class CreateEventPage {
     }
   }
 
-  async cancelCreation() {
+  public async cancelCreation() {
     await this.cancelBtn.click();
   }
 
-  async gotoEventSettings(): Promise<EventSettingsPage> {
+  public async gotoEventSettings(): Promise<EventSettingsPage> {
     try {
       await this.eventSettingsBtn.click();
       return new EventSettingsPage(this.page);
     } catch (e) {
       throw new Error(`Can't go to stream event settings page after create`);
     }
+  }
+
+  public async createStreamEvent(
+    name: string,
+    date: string,
+    startTime?: string,
+    endTime?: string
+  ) {
+    await this.setDate(date);
+    if (startTime) {
+      await this.setFromTime(startTime);
+    }
+    if (endTime) {
+      await this.setToTime(endTime);
+    }
+    await this.setName(name);
+
+    await this.createEvent();
+    return await this.gotoEventSettings();
   }
 }

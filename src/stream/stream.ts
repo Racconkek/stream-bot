@@ -1,9 +1,8 @@
 import { Browser, BrowserContext, chromium, Page } from 'playwright';
 import { RoomPage } from '../pages/room-page';
 import { adminAuth } from '../actions/auth';
-import { createStreamEvent } from '../actions/create-stream-event';
-import { getGuid } from '../actions/guid';
 import { DefaultTabToShareParams, ITabToShareParams, IStreamStartParams } from './types';
+import {getGuid} from "../helpers";
 
 const browserType = chromium;
 
@@ -61,8 +60,7 @@ export class Stream {
     const page = await this.createBrowser(streamStartParams.tabParams);
     const homePage = await adminAuth(page, streamStartParams.streamStandUrl);
     const createEventPage = await homePage.gotoStreamEventCreation();
-    const eventSettingsPage = await createStreamEvent(
-      createEventPage,
+    const eventSettingsPage = await createEventPage.createStreamEvent(
       streamStartParams.name,
       streamStartParams.date,
       streamStartParams.startTime,

@@ -11,6 +11,11 @@ const adminPassword = process.env.ADMIN_PASSWORD!;
 const userLogin = process.env.USER_LOGIN!;
 const userPassword = process.env.USER_PASSWORD!;
 
+/**
+ * Авторизация админа
+ * @param page Страница, на которой происходит авторизация
+ * @param streamStandUrl Ссылка на стенд, на котором происходит авторизация
+ */
 export async function adminAuth(page: Page, streamStandUrl: string): Promise<HomePage> {
   const loginPage = new PassportLoginPage(page);
   try {
@@ -25,6 +30,11 @@ export async function adminAuth(page: Page, streamStandUrl: string): Promise<Hom
   }
 }
 
+/**
+ * Авторизация обычного юзера
+ * @param page Страница, на которой происходит авторизация
+ * @param streamStandUrl Ссылка на стенд, на котором происходит авторизация
+ */
 export async function userAuth(page: Page, streamStandUrl: string): Promise<HomePage> {
   const loginPage = new PassportLoginPage(page);
   await loginPage.goto(streamStandUrl);
