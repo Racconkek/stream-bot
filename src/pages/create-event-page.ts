@@ -1,7 +1,8 @@
 import { Page } from 'playwright';
 import { DatePicker } from '../elements/date-picker';
 import { EventSettingsPage } from './event-settings-page';
-import {Select} from "../elements/select";
+import { Select } from '../elements/select';
+import { Logger } from '../helpers';
 
 export class CreateEventPage {
   private readonly dateTimePicker = this.page.getByTestId('CreateEventPage.DateTimePicker');
@@ -24,6 +25,7 @@ export class CreateEventPage {
       await this.datePicker.fill(date);
       await this.datePicker.blur();
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't set date: ${date}`);
     }
   }
@@ -32,25 +34,39 @@ export class CreateEventPage {
    * @param hours "1ч"
    * */
   async setDurationHours(hours: string) {
-    await this.durationHoursSelect.selectItem(
-      this.page
-        .locator('[data-tid="Select__menu"]')
-        .getByText(hours)
-        .filter({ hasText: new RegExp(`^${hours}$`) }),
-    );
+    try {
+      await this.durationHoursSelect.selectItem(
+        this.page
+          .locator('[data-tid="Select__menu"]')
+          .getByText(hours)
+          .filter({ hasText: new RegExp(`^${hours}$`) })
+      );
+      Logger.info(`CreateEventPage: set duration hours ${hours}`)
+    } catch (e) {
+      Logger.error(e as Error);
+      throw new Error(`Cannot set duration hours: ${hours}`);
+    }
   }
 
   /**
    * @param minutes "0м | 15м | 30м | 45м"
    * */
   async setDurationMinutes(minutes: string) {
-    await this.durationMinutesSelect.selectItem(this.page.getByText(minutes));
+    try {
+      await this.durationMinutesSelect.selectItem(this.page.getByText(minutes));
+      Logger.info(`CreateEventPage: set duration minutes ${minutes}`)
+    } catch (e) {
+      Logger.error(e as Error);
+      throw new Error(`Cannot set duration minutes: ${minutes}`);
+    }
   }
 
   public async setName(name: string) {
     try {
       await this.nameInput.fill(name);
+      Logger.info(`CreateEventPage: set duration name ${name}`)
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't set to name: ${name}`);
     }
   }
@@ -58,7 +74,9 @@ export class CreateEventPage {
   public async createEvent() {
     try {
       await this.createBtn.click();
+      Logger.info(`CreateEventPage: click on create button`)
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't click on create button`);
     }
   }
@@ -70,18 +88,15 @@ export class CreateEventPage {
   public async gotoEventSettings(): Promise<EventSettingsPage> {
     try {
       await this.eventSettingsBtn.click();
+      Logger.info(`CreateEventPage: click on event settings page button after create`)
       return new EventSettingsPage(this.page);
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't go to stream event settings page after create`);
     }
   }
 
-  public async createStreamEvent(
-    name: string,
-    date: string,
-    durationHours?: string,
-    durationMinutes?: string
-  ) {
+  public async createStreamEvent(name: string, date: string, durationHours?: string, durationMinutes?: string) {
     await this.setDate(date);
     if (durationHours) {
       await this.setDurationHours(durationHours);

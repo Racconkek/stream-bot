@@ -1,4 +1,5 @@
 import { Page } from 'playwright';
+import { Logger } from '../helpers';
 
 export class RoomPage {
   readonly microphoneButton = this.page
@@ -30,9 +31,10 @@ export class RoomPage {
       if (isEnabled !== 'negative') {
         await this.microphoneButton.focus();
         await this.microphoneButton.click();
+        Logger.info(`RoomPage: click on Microphone button to mute`);
       }
     } catch (e) {
-      console.info(`Can't disable microphone`, e);
+      Logger.warn(`Can't disable microphone`);
     }
   }
 
@@ -47,6 +49,7 @@ export class RoomPage {
     const label = await this.screenShareButton.locator('button').getAttribute('aria-label');
     if (label === 'Показать экран' || label === 'Start screen sharing') {
       await this.screenShareButton.click();
+      Logger.info(`RoomPage: click on share button`);
     }
 
     const isSharing = await this.page
@@ -54,6 +57,7 @@ export class RoomPage {
       .locator('n-action-button')
       .locator('button')
       .getAttribute('aria-label');
+    Logger.info(`RoomPage: isSharing after click ${isSharing}`);
     // @ts-ignore
     return !isSharing || isSharing !== 'Stop screen sharing' || isSharing !== 'Отключить показ экрана';
   }
@@ -66,20 +70,30 @@ export class RoomPage {
       const label = await this.streamButton.getAttribute('aria-label');
       if (label === 'Начать трансляцию' || label === 'Start live stream') {
         await this.streamButton.click();
+        Logger.info('RoomPage: click on Start Stream button');
       } else {
-        throw new Error('Stream already started');
+        const error = new Error('Stream already started');
+        Logger.error(error);
+        throw error;
       }
 
       return this.page.url();
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't start stream: ${(e as Error).message}`);
     }
   }
 
   async stopStream() {
-    const label = await this.streamButton.getAttribute('aria-label');
-    if (label === 'Остановить трансляцию' || label === 'Stop live stream') {
-      await this.streamButton.click();
+    try {
+      const label = await this.streamButton.getAttribute('aria-label');
+      if (label === 'Остановить трансляцию' || label === 'Stop live stream') {
+        await this.streamButton.click();
+        Logger.info(`RoomPage: click on Stop Stream button`);
+      }
+    } catch (e) {
+      Logger.error(e as Error);
+      throw new Error('Cannot stop stream');
     }
   }
 }

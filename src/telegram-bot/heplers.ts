@@ -1,5 +1,5 @@
 import { DefaultStreamStartParams, IStreamStartParams, ITabToShareParams } from '../stream/types';
-import { dateToString } from '../helpers';
+import { dateToString, Logger } from '../helpers';
 
 export const parseStreamParams = (text: string): IStreamStartParams => {
   const lines = text
@@ -56,9 +56,8 @@ export const parseStreamStopParams = (text: string): string => {
     .trim()
     .split(' ')
     .map((part) => part.trim());
-
   const id = parts[1];
-
+  Logger.info(`parseStreamStopParams: text: ${text}, parts: ${parts.join('$')}, id:${id}`);
   if (!id) {
     throw new Error('Нет streamId');
   }

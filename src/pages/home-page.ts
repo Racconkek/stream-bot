@@ -3,6 +3,7 @@ import { Page } from 'playwright';
 import { CreateEventPage } from './create-event-page';
 import { RoomPage } from './room-page';
 import { RoomConnectPage } from './room-connect-page';
+import { Logger } from '../helpers';
 
 export class HomePage {
   readonly homePageRoot = this.page.locator('home-page');
@@ -26,9 +27,11 @@ export class HomePage {
     try {
       await this.createDropdown.clickDropdownItem(this.newEventBtn);
       await this.page.waitForLoadState('networkidle');
+      Logger.info(`HomePage.gotoStreamEventCreation: Success`);
 
       return new CreateEventPage(this.page);
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't go to CreateEventPage`);
     }
   }

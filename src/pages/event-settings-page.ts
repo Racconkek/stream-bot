@@ -3,6 +3,7 @@ import { Page } from 'playwright';
 import { EventGeneralSettingsPage } from './event-general-settings-page';
 import { EventHostsSettingsPage } from './event-hosts-settings-page';
 import { EventViewersSettingsPage } from './event-viewers-settings-page';
+import {Logger} from "../helpers";
 
 export class EventSettingsPage {
   readonly title = this.page.locator('h1');
@@ -22,8 +23,10 @@ export class EventSettingsPage {
   public async gotoHostsSettings() {
     try {
       await this.hostsSettingsBtn.click();
+      Logger.info(`EventSettingsPage: click on Hosts tab`)
       return this.hostsSettings;
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't go to hosts tab in settings`);
     }
   }

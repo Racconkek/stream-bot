@@ -2,7 +2,7 @@ import { Browser, BrowserContext, chromium, Page } from 'playwright';
 import { RoomPage } from '../pages/room-page';
 import { adminAuth } from '../actions/auth';
 import { DefaultTabToShareParams, ITabToShareParams, IStreamStartParams } from './types';
-import {getGuid} from "../helpers";
+import { getGuid, Logger } from '../helpers';
 
 const browserType = chromium;
 
@@ -36,6 +36,7 @@ export class Stream {
     this.status = 'created';
     this.userId = userId;
     this.userName = userName;
+    Logger.info(`Stream: create with params: userId=${userId}, userName=${userName}`);
   }
 
   /**
@@ -57,6 +58,7 @@ export class Stream {
    * @returns Ссылка на комнату, где запущен стрим
    */
   public async startStream(streamStartParams: IStreamStartParams) {
+    Logger.info(`Stream.startStream: Begin`);
     const page = await this.createBrowser(streamStartParams.tabParams);
     const homePage = await adminAuth(page, streamStartParams.streamStandUrl);
     const createEventPage = await homePage.gotoStreamEventCreation();
@@ -75,7 +77,9 @@ export class Stream {
     // await roomPage.disableCamera();
     const success = await roomPage.startScreenShare();
     if (!success) {
-      throw new Error('Can not start screen share');
+      const error = new Error('Can not start screen share');
+      Logger.error(error);
+      throw error;
     }
 
     const url = await roomPage.startStream();
@@ -127,6 +131,9 @@ export class Stream {
       args: ['--use-fake-device-for-media-stream', autoCaptureTabParam],
     });
     this.browser = browser;
+    Logger.info(
+      `Stream.createBrowser: create ${browserType.name()} version=${browser.version()}, autoCaptureTabParam=${autoCaptureTabParam}`
+    );
 
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.grantPermissions(['camera', 'microphone']);
@@ -141,14 +148,19 @@ export class Stream {
    * @param tabToShareParams Параметры для вкладки, которую шарим
    */
   private async prepareTabToShare(context: BrowserContext, tabToShareParams?: ITabToShareParams) {
+    const tabToShareUrl = tabToShareParams?.url ?? DefaultTabToShareParams.url;
+    Logger.info(`Stream.prepareTabToShare: Begin tabToShareUrl=${tabToShareUrl}`);
+
     try {
       const pageToShare = await context.newPage();
-      await pageToShare.goto(tabToShareParams?.url ?? DefaultTabToShareParams.url);
+      await pageToShare.goto(tabToShareUrl);
       await pageToShare.waitForLoadState('load');
       await pageToShare.keyboard.press('Space');
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error('Can not prepare tab to share');
     }
+    Logger.info(`Stream.prepareTabToShare: success share`);
   }
 
   /**

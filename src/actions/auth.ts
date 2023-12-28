@@ -3,6 +3,7 @@ import { PassportLoginPage } from '../pages/passport-login-page';
 import { config } from 'dotenv';
 import path from 'path';
 import { HomePage } from '../pages/home-page';
+import { Logger } from '../helpers';
 
 config({ path: path.join(__dirname, '..', '..', '.env') });
 
@@ -23,9 +24,11 @@ export async function adminAuth(page: Page, streamStandUrl: string): Promise<Hom
     await loginPage.authorize(adminLogin, adminPassword);
     await page.waitForURL(streamStandUrl);
     await page.waitForLoadState('networkidle');
+    Logger.info(`adminAuth: Success auth by ${adminLogin}`);
 
     return new HomePage(page);
   } catch (e) {
+    Logger.error(e as Error);
     throw new Error(`Cannot login on url ${streamStandUrl}`);
   }
 }

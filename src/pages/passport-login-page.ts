@@ -1,5 +1,5 @@
-import {Page} from "playwright";
-
+import { Page } from 'playwright';
+import { Logger } from '../helpers';
 
 export class PassportLoginPage {
   readonly loginInput = this.page.locator('[data-tid="i-login"]');
@@ -13,9 +13,14 @@ export class PassportLoginPage {
   }
 
   async authorize(login: string, password: string) {
-    await this.loginInput.fill(login);
-    await this.passwordInput.click();
-    await this.passwordInput.pressSequentially(password);
-    await this.page.keyboard.press('Enter');
+    try {
+      await this.loginInput.pressSequentially(login);
+      await this.passwordInput.click();
+      await this.passwordInput.pressSequentially(password);
+      await this.page.keyboard.press('Enter');
+    } catch (e) {
+      Logger.error(e as Error);
+      throw new Error('Cannot login on PassportLoginPage - fill creds')
+    }
   }
 }

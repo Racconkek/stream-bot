@@ -1,5 +1,6 @@
 import { Page } from 'playwright';
 import { RoomPage } from './room-page';
+import { Logger } from '../helpers';
 
 export class RoomConnectPage {
   readonly continueButton = this.page.locator('main-action-button');
@@ -24,9 +25,10 @@ export class RoomConnectPage {
     try {
       await this.continueButton.click();
       await this.page.waitForLoadState('networkidle');
-
+      Logger.info(`RoomConnectPage: click on Continue button`);
       return new RoomPage(this.page);
     } catch (e) {
+      Logger.error(e as Error);
       throw new Error(`Can't click on continue button while connect to room`);
     }
   }
